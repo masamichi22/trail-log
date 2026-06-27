@@ -1,3 +1,5 @@
+// If you want to run this app, please enter the command below (please change "pass" to your MySQL password).
+// DB_PASSWORD=pass go run main.go
 package main
 
 import (
@@ -6,23 +8,41 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 
 	_ "github.com/go-sql-driver/mysql"
 )
 
 type Record struct {
-	Date			string
-	MountainName	string
-	Weather			string
-	Duration		string
-	Memo			string
+	Date         string
+	MountainName string
+	Weather      string
+	Duration     string
+	Memo         string
 }
 
 var db *sql.DB
 var tmpl = template.Must(template.ParseFiles("templates/index.html"))
 
 func main() {
-	dsn := "root:Yoshimasa22@tcp(127.0.0.1:3306)/mountain_db"
+	dbUser := os.Getenv("DB_USER")
+	if dbUser == "" {
+		dbUser = "root"
+	}
+
+	dbPass := os.Getenv("DB_PASSWORD")
+
+	dbHost := os.Getenv("DB_HOST")
+	if dbHost == "" {
+		dbHost = "127.0.0.1:3306"
+	}
+
+	dbName := os.Getenv("DB_NAME")
+	if dbName == "" {
+		dbName = "mountain_db"
+	}
+	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s", dbUser, dbPass, dbHost, dbName)
+
 	var err error
 	db, err = sql.Open("mysql", dsn)
 	if err != nil {
@@ -46,7 +66,6 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
 	}
-
 
 	rows, err := db.Query("SELECT date, mountain_name, weather, duration, memo FROM hiking_records ORDER BY date DESC")
 	if err != nil {
