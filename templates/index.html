@@ -53,6 +53,7 @@
                 <th>天気</th>
                 <th>所要時間</th>
                 <th>その他メモ</th>
+                <th>操作</th>
             </tr>
         </thead>
         <tbody>
@@ -63,6 +64,13 @@
                 <td>{{.Weather}}</td>
                 <td>{{.Duration}}</td>
                 <td>{{if .Memo}}{{.Memo}}{{else}}-{{end}}</td>
+                <td>
+                    <form action="/delete" method="POST" style="display: inline;">
+                        <input type="hidden" name="date" value="{{.Date}}">
+                        <input type="hidden" name="mountain_name" value="{{.MountainName}}">
+                        <button type="submit" style="padding: 5px 10px; background-color: #dc3545; color: white; border: none; border-radius: 3px; cursor: pointer;">削除</button>
+                    </form>
+                </td>
             </tr>
             {{else}}
             <tr>
