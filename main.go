@@ -56,7 +56,7 @@ func main() {
 
 	http.HandleFunc("/", handleIndex)
 	http.HandleFunc("/add", handleAddRecord)
-
+	http.HandleFunc("/delete", handleDeleteRecord)
 	fmt.Println("Running server: http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
@@ -111,6 +111,28 @@ func handleAddRecord(w http.ResponseWriter, r *http.Request) {
 		ON DUPLICATE KEY UPDATE mountain_name=?, weather=?, duration=?, memo=?`
 
 	_, err := db.Exec(query, date, mountainName, weather, duration, memo, mountainName, weather, duration, memo)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func handleDeleteRecord(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	date := r.FormValue("date")
+	mountainName := r.FormValue("mountain_name")
+	if date == "" || mountainName == "" {
+		http.Error(w, "Must contain Date and Mountain Name", http.StatusBadRequest)
+		return
+	}
+
+	_, err := db.Exec("DELETE FROM hiking_records WHERE date=? AND mountain_name=?", date, mountainName)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
